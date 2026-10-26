@@ -5,9 +5,9 @@ from datetime import date, timedelta
 import plotly.express as px
 import streamlit.components.v1 as components
 
-# ================= 1. التصميم المتجاوب وتوافق جميع الشاشات =================
+# ================= 1. التصميم المتجاوب ودعم الشاشات =================
 st.set_page_config(
-    page_title="مزرعة عبد الله الشمندي - النظام الشامل",
+    page_title="مزرعة عبد الله الشمندي",
     layout="wide",
     page_icon="🐟",
     initial_sidebar_state="collapsed"
@@ -15,47 +15,30 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    /* دعم اللغة العربية */
     body, html, [class*="css"], .stMarkdown, p, div {
         direction: rtl;
         text-align: right;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    /* تصميم متجاوب لكافة الشاشات (الهواتف والتابلت والكمبيوتر) */
     @media (max-width: 768px) {
-        .stMetric {
-            margin-bottom: 8px !important;
-            padding: 10px !important;
-        }
-        [data-testid="column"] {
-            width: 100% !important;
-            flex: 1 1 100% !important;
-            min-width: 100% !important;
-        }
-        .main .block-container {
-            padding: 10px 15px !important;
-        }
+        .stMetric { margin-bottom: 8px !important; padding: 10px !important; }
+        [data-testid="column"] { width: 100% !important; flex: 1 1 100% !important; min-width: 100% !important; }
+        .main .block-container { padding: 10px 15px !important; }
     }
-    
     .stMetric {
         background-color: #ffffff;
-        padding: 16px;
+        padding: 15px;
         border-radius: 10px;
         border-right: 6px solid #0284c7;
         box-shadow: 0 2px 4px rgba(0,0,0,0.06);
     }
-    
-    .checklist-box {
-        background: #f8fafc;
-        border: 1px solid #e2e8f0;
+    .stButton>button {
         border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 12px;
+        font-weight: bold;
+        min-height: 48px;
     }
-    
     @media print {
-        header, .stSidebar, .stButton { display: none !important; }
+        header, .stSidebar, .stButton, button { display: none !important; }
         #printArea { border: none !important; box-shadow: none !important; width: 100% !important; }
     }
 </style>
@@ -68,10 +51,10 @@ def check_password():
 
     if not st.session_state.authenticated:
         st.markdown("<h2 style='text-align: center; color: #0284c7;'>🐟 شركة ومزرعة أسماك عبد الله الشمندي</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; color: #64748b;'>منظومة الإدارة الذكية والدورة المحاسبية الشاملة</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; color: #64748b;'>نظام الإدارة الذكية والدورة المحاسبية المتكاملة</p>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
-            st.info("🔒 يرجى إدخال رمز المرور السري للدخول")
+            st.info("🔒 يرجى إدخال رمز المرور السري للمتابعة")
             pwd = st.text_input("رمز الدخول (PIN):", type="password")
             if st.button("تسجيل الدخول للنظام", use_container_width=True):
                 if pwd == "2026":
@@ -85,38 +68,30 @@ def check_password():
 if not check_password():
     st.stop()
 
-# ================= 3. قاعدة البيانات الشاملة =================
+# ================= 3. إعداد وتحديث قاعدة البيانات =================
 def get_db():
     conn = sqlite3.connect("al_shamandy_farm.db", check_same_thread=False)
     cur = conn.cursor()
-    # أحواض
     cur.execute("""CREATE TABLE IF NOT EXISTS ponds (
         id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, fish_type TEXT, 
         stock_count INTEGER, initial_cost REAL, initial_weight REAL, stock_date TEXT, status TEXT DEFAULT 'نشط')""")
-    # علف
     cur.execute("""CREATE TABLE IF NOT EXISTS feed (
         id INTEGER PRIMARY KEY AUTOINCREMENT, pond_name TEXT, date TEXT, 
         feed_type TEXT, qty_kg REAL, price_per_kg REAL, total_cost REAL)""")
-    # مصروفات عامة
     cur.execute("""CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, category TEXT, amount REAL, notes TEXT)""")
-    # مبيعات
     cur.execute("""CREATE TABLE IF NOT EXISTS sales (
         id INTEGER PRIMARY KEY AUTOINCREMENT, pond_name TEXT, date TEXT, 
         qty_kg REAL, price_per_kg REAL, total_price REAL, client TEXT)""")
-    # أصول ورأس مال
     cur.execute("""CREATE TABLE IF NOT EXISTS assets (
         id INTEGER PRIMARY KEY AUTOINCREMENT, asset_name TEXT, category TEXT, value REAL, purchase_date TEXT)""")
-    # الموظفون والعمال
     cur.execute("""CREATE TABLE IF NOT EXISTS employees (
         id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, role TEXT, daily_wage REAL, phone TEXT)""")
     cur.execute("""CREATE TABLE IF NOT EXISTS labor_log (
         id INTEGER PRIMARY KEY AUTOINCREMENT, emp_name TEXT, date TEXT, status TEXT, advance REAL, notes TEXT)""")
-    # قياسات جودة المياه
     cur.execute("""CREATE TABLE IF NOT EXISTS water_quality (
         id INTEGER PRIMARY KEY AUTOINCREMENT, pond_name TEXT, date TEXT, 
         temp REAL, dissolved_oxygen REAL, ph REAL, ammonia REAL, notes TEXT)""")
-    # قوائم المراجعة والتدقيق
     cur.execute("""CREATE TABLE IF NOT EXISTS audit_log (
         id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT, pond_name TEXT, 
         pumps_status TEXT, nets_status TEXT, feeding_response TEXT, mortalities INTEGER, inspector TEXT, notes TEXT)""")
@@ -125,31 +100,74 @@ def get_db():
 
 conn = get_db()
 
-# ================= 4. القائمة الرئيسية المتطورة =================
-st.sidebar.title("🐟 مزرعة عبد الله الشمندي")
-st.sidebar.caption("نظام التخطيط والتحكم السحابي المتكامل")
+# ================= 4. واجهة التنقل الذكية =================
+if "page" not in st.session_state:
+    st.session_state.page = "الرئيسية"
 
-if st.sidebar.button("تسجيل الخروج"):
-    st.session_state.authenticated = False
+def set_page(name):
+    st.session_state.page = name
     st.rerun()
 
-menu = st.sidebar.radio("الوحدات التشغيلية والمالية:", [
-    "📊 لوحة المؤشرات التنفيذية",
-    "⚖️ الدورة المحاسبية وميزان المراجعة",
-    "📑 القوائم الختامية (الدخل والمركز المالي)",
-    "👷 شؤون العمال والموظفين",
-    "🔮 التوقعات ومحاكاة الإنتاج",
-    "🧪 البحث العلمي ومختبر المياه",
-    "✅ قائمة المراجعة والتدقيق اليومي",
-    "🥣 الأعلاف والتشغيل اليومي",
-    "💰 مبيعات الحصاد",
-    "🚜 الأصول الثابتة ورأس المال",
-    "🏞️ إدارة الأحواض"
-])
+# الشريط العلوي
+col_top1, col_top2 = st.columns([3, 1])
+with col_top1:
+    if st.session_state.page != "الرئيسية":
+        if st.button("🏠 العودة للشاشة الرئيسية", key="back_home"):
+            set_page("الرئيسية")
+with col_top2:
+    if st.button("🔒 تسجيل الخروج"):
+        st.session_state.authenticated = False
+        st.rerun()
 
-# ----------------- 1. لوحة المؤشرات التنفيذية -----------------
-if menu == "📊 لوحة المؤشرات التنفيذية":
-    st.header("📊 لوحة القيادة والمؤشرات العامة")
+# ================= 5. الشاشة الرئيسية (لوحة الإطلاق) =================
+if st.session_state.page == "الرئيسية":
+    st.markdown("""
+        <div style='background: linear-gradient(135deg, #0284c7, #0f766e); padding: 22px; border-radius: 12px; color: white; text-align: center; margin-bottom: 25px;'>
+            <h2 style='margin:0; color: white;'>🐟 مزرعة أسماك عبد الله الشمندي</h2>
+            <p style='margin:6px 0 0 0; opacity: 0.95;'>منظومة الإدارة المتكاملة والحسابات اليومية - اختر القسم</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("💵 الإدارة المالية والدورة المحاسبية")
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        if st.button("📊 المؤشرات المالية\n(نظرة عامة ومصاريف)", use_container_width=True): set_page("المؤشرات المالية")
+    with c2:
+        if st.button("⚖️ ميزان المراجعة\n(توازن القيود واليومية)", use_container_width=True): set_page("ميزان المراجعة")
+    with c3:
+        if st.button("📑 القوائم الختامية\n(الدخل والمركز المالي)", use_container_width=True): set_page("القوائم الختامية")
+    with c4:
+        if st.button("🚜 الأصول ورأس المال\n(المعدات والاستثمارات)", use_container_width=True): set_page("الأصول ورأس المال")
+
+    st.markdown("---")
+
+    st.subheader("🐟 العمليات والإنتاج السمكي")
+    c5, c6, c7 = st.columns(3)
+    with c5:
+        if st.button("🏞️ إدارة الأحواض\n(تسكين الزريعة والمتابعة)", use_container_width=True): set_page("إدارة الأحواض")
+    with c6:
+        if st.button("🥣 التغذية والأعلاف\n(تسجيل استهلاك العلف اليومي)", use_container_width=True): set_page("الأعلاف والتشغيل")
+    with c7:
+        if st.button("💰 مبيعات الحصاد\n(فواتير البيع للعملاء)", use_container_width=True): set_page("مبيعات الحصاد")
+
+    st.markdown("---")
+
+    st.subheader("🧪 التطوير والرقابة وشؤون العمالة")
+    c8, c9, c10, c11 = st.columns(4)
+    with c8:
+        if st.button("👷 حركة العمالة\n(الحضور، اليوميات، والسلف)", use_container_width=True): set_page("شؤون العمال")
+    with c9:
+        if st.button("🔮 التوقعات والمحاكاة\n(توقع الحصاد والأوزان)", use_container_width=True): set_page("التوقعات والمحاكاة")
+    with c10:
+        if st.button("🧪 مختبر المياه\n(الأكسجين، الحرارة، الأمونيا)", use_container_width=True): set_page("مختبر المياه")
+    with c11:
+        if st.button("✅ قائمة التدقيق\n(فحص الطلمبات والنافق)", use_container_width=True): set_page("قائمة المراجعة")
+
+# ================= 6. الشاشات التفصيلية =================
+
+# 1. المؤشرات المالية
+elif st.session_state.page == "المؤشرات المالية":
+    st.header("📊 لوحة المؤشرات المالية والتنفيذية")
     df_exp = pd.read_sql("SELECT * FROM expenses", conn)
     df_feed = pd.read_sql("SELECT * FROM feed", conn)
     df_sales = pd.read_sql("SELECT * FROM sales", conn)
@@ -171,7 +189,7 @@ if menu == "📊 لوحة المؤشرات التنفيذية":
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("توزيع هيكل التكاليف")
+        st.subheader("هيكل التكاليف")
         if total_costs > 0:
             exp_sum = df_exp.groupby('category')['amount'].sum().reset_index() if not df_exp.empty else pd.DataFrame(columns=['category', 'amount'])
             all_exp = pd.concat([
@@ -180,14 +198,14 @@ if menu == "📊 لوحة المؤشرات التنفيذية":
             ], ignore_index=True)
             st.plotly_chart(px.pie(all_exp, values='amount', names='category', hole=0.45), use_container_width=True)
     with col2:
-        st.subheader("تحليل الإيرادات عبر الزمن")
+        st.subheader("حركة المبيعات عبر الزمن")
         if not df_sales.empty:
             st.plotly_chart(px.bar(df_sales.groupby('date')['total_price'].sum().reset_index(), x='date', y='total_price'), use_container_width=True)
 
-# ----------------- 2. الدورة المحاسبية وميزان المراجعة -----------------
-elif menu == "⚖️ الدورة المحاسبية وميزان المراجعة":
+# 2. ميزان المراجعة
+elif st.session_state.page == "ميزان المراجعة":
     st.header("⚖️ ميزان المراجعة والقيود المحاسبية")
-    st.caption("التحقق من توازن الحسابات (الأرصدة المدينة والدائنة) للدورة المالية الحالية")
+    st.caption("التحقق من توازن الحسابات (الأرصدة المدينة والدائنة) للدورة المحاسبية الحالية")
 
     df_sales = pd.read_sql("SELECT SUM(total_price) as total FROM sales", conn)
     df_feed = pd.read_sql("SELECT SUM(total_cost) as total FROM feed", conn)
@@ -195,7 +213,6 @@ elif menu == "⚖️ الدورة المحاسبية وميزان المراجع
     df_assets = pd.read_sql("SELECT category, SUM(value) as total FROM assets GROUP BY category", conn)
     df_labor = pd.read_sql("SELECT SUM(advance) as total FROM labor_log", conn)
 
-    # تجميع بنود ميزان المراجعة
     rev = df_sales['total'].iloc[0] or 0.0
     feed_exp = df_feed['total'].iloc[0] or 0.0
     advances = df_labor['total'].iloc[0] or 0.0
@@ -228,12 +245,12 @@ elif menu == "⚖️ الدورة المحاسبية وميزان المراجع
     if round(total_debit, 2) == round(total_credit, 2):
         st.success("✔ ميزان المراجعة متوازن تماماً والقيود سليمة محاسبياً.")
     else:
-        st.warning("⚠️ يوجد فارق تسوية في القيود يرجى تدقيق رأس المال الأولي أو حركات الكاش.")
+        st.warning("⚠️ يوجد فارق تسوية في القيود يرجى مراجعة رصيد البداية أو حركة النقدية.")
 
-# ----------------- 3. القوائم الختامية والطباعة -----------------
-elif menu == "📑 القوائم الختامية (الدخل والمركز المالي)":
+# 3. القوائم الختامية
+elif st.session_state.page == "القوائم الختامية":
     st.header("📑 القوائم المالية الختامية")
-    tab1, tab2 = st.tabs(["قائمة الدخل (P&L)", "الميزانية العمومية (Balance Sheet)"])
+    tab1, tab2 = st.tabs(["قائمة الدخل (P&L)", "الميزانية العمومية (المركز المالي)"])
 
     with tab1:
         c1, c2 = st.columns(2)
@@ -256,16 +273,14 @@ elif menu == "📑 القوائم الختامية (الدخل والمركز ا
             <p><b>إيرادات النشاط (مبيعات الأسماك):</b> {rev:,.2f} ج.م</p>
             <p style="color: #b91c1c;"><b>يخصم تكلفة التشغيل المباشرة (علف + طاقة):</b> ({(c_feed + c_power):,.2f}) ج.م</p>
             <h4 style="background: #f1f5f9; padding: 8px;">مجمل الربح التشغيلي: {gross:,.2f} ج.م</h4>
-            <p style="color: #b91c1c;"><b>يخصم المصروفات الإدارية والعمومية والصيانة:</b> ({c_other:,.2f}) ج.م</p>
-            <h3 style="background: #0284c7; color: white; padding: 10px; border-radius: 5px;">صافي الربح القابل للتوزيع: {net:,.2f} ج.م</h3>
+            <p style="color: #b91c1c;"><b>يخصم المصروفات الإدارية والصيانة:</b> ({c_other:,.2f}) ج.م</p>
+            <h3 style="background: #0284c7; color: white; padding: 10px; border-radius: 5px;">صافي الربح: {net:,.2f} ج.م</h3>
         </div>
         """
         st.markdown(pnl_html, unsafe_allow_html=True)
         components.html('<button onclick="window.print()" style="margin-top:10px; padding:10px 20px; background:#0284c7; color:#fff; border:none; border-radius:5px; cursor:pointer; font-weight:bold; width:100%;">🖨️ طباعة قائمة الدخل أو تصديرها كـ PDF</button>', height=60)
 
     with tab2:
-        st.subheader("قائمة المركز المالي")
-        # حسابات المركز المالي
         df_assets = pd.read_sql("SELECT category, SUM(value) as val FROM assets GROUP BY category", conn)
         cap = df_assets[df_assets['category'] == 'رأس مال نقدي مبدئي']['val'].sum() if not df_assets.empty else 0.0
         fixed = df_assets[df_assets['category'] != 'رأس مال نقدي مبدئي']['val'].sum() if not df_assets.empty else 0.0
@@ -275,7 +290,7 @@ elif menu == "📑 القوائم الختامية (الدخل والمركز ا
         feed_all = (pd.read_sql("SELECT SUM(total_cost) as f FROM feed", conn)['f'].iloc[0] or 0.0)
         
         cash = (rev_all + cap) - (exp_all + feed_all)
-        bio_inventory = feed_all * 0.85 # تقييم استرشادي للأسماك في المياه
+        bio_inventory = feed_all * 0.85
         total_assets = cash + bio_inventory + fixed
         
         bs_html = f"""
@@ -286,16 +301,16 @@ elif menu == "📑 القوائم الختامية (الدخل والمركز ا
             <div style="display: flex; gap: 15px;">
                 <div style="flex:1; border: 1px solid #e2e8f0; padding: 12px; border-radius: 5px;">
                     <h4 style="color: #0369a1;">الأصول (Assets)</h4>
-                    <p>النقدية وشبه النقد: <b>{cash:,.2f} ج.م</b></p>
-                    <p>المخزون البيولوجي التقديري: <b>{bio_inventory:,.2f} ج.م</b></p>
+                    <p>النقدية بالصندوق والخزينة: <b>{cash:,.2f} ج.م</b></p>
+                    <p>المخزون الحي بالأحواض: <b>{bio_inventory:,.2f} ج.م</b></p>
                     <p>الأصول الثابتة والمعدات: <b>{fixed:,.2f} ج.م</b></p>
                     <h4 style="background: #e0f2fe; padding: 8px;">إجمالي الأصول: {total_assets:,.2f} ج.م</h4>
                 </div>
                 <div style="flex:1; border: 1px solid #e2e8f0; padding: 12px; border-radius: 5px;">
                     <h4 style="color: #0f766e;">الخصوم وحقوق الملكية</h4>
                     <p>رأس المال الأساسي: <b>{cap:,.2f} ج.م</b></p>
-                    <p>الأرباح المرحلة والاحتياطيات: <b>{(total_assets - cap):,.2f} ج.م</b></p>
-                    <h4 style="background: #ccfbf1; padding: 8px;">إجمالي الالتزامات وحقوق الملكية: {total_assets:,.2f} ج.م</h4>
+                    <p>الأرباح المرحلة والمحتجزة: <b>{(total_assets - cap):,.2f} ج.م</b></p>
+                    <h4 style="background: #ccfbf1; padding: 8px;">إجمالي الخصوم وحقوق الملكية: {total_assets:,.2f} ج.م</h4>
                 </div>
             </div>
         </div>
@@ -303,11 +318,11 @@ elif menu == "📑 القوائم الختامية (الدخل والمركز ا
         st.markdown(bs_html, unsafe_allow_html=True)
         components.html('<button onclick="window.print()" style="margin-top:10px; padding:10px 20px; background:#0f766e; color:#fff; border:none; border-radius:5px; cursor:pointer; font-weight:bold; width:100%;">🖨️ طباعة الميزانية العمومية كـ PDF</button>', height=60)
 
-# ----------------- 4. شؤون العمال والموظفين -----------------
-elif menu == "👷 شؤون العمال والموظفين":
-    st.header("👷 متابعة حركة العمالة واليوميات والسلف")
+# 4. شؤون العمال
+elif st.session_state.page == "شؤون العمال":
+    st.header("👷 شؤون العمال ومتابعة اليوميات والسلفيات")
+    t1, t2 = st.tabs(["تسجيل اليومية والسلفة", "إضافة عامل جديد"])
     
-    t1, t2 = st.tabs(["تسجيل اليومية والحضور", "إضافة عامل جديد"])
     with t2:
         with st.form("add_emp"):
             name = st.text_input("اسم العامل / الموظف")
@@ -322,161 +337,138 @@ elif menu == "👷 شؤون العمال والموظفين":
                     st.success("تم تسجيل العامل بنجاح")
                     st.rerun()
                 except:
-                    st.error("الاسم مسجل بالفعل")
+                    st.error("اسم العامل مسجل مسبقاً")
 
     with t1:
         emps = [r[0] for r in conn.cursor().execute("SELECT name FROM employees").fetchall()]
         if emps:
             with st.form("log_labor"):
                 c1, c2 = st.columns(2)
-                emp = c1.selectbox("اختر العامل", emps)
+                emp = c1.selectbox("العامل", emps)
                 l_date = c2.date_input("التاريخ", date.today())
                 c3, c4 = st.columns(2)
                 stat = c3.selectbox("حالة الحضور", ["حاضر", "غائب", "إجازة مدفوعة", "نصف يوم"])
-                adv = c4.number_input("سلفة مسحوبة من الخزينة (ج.م)", min_value=0.0, step=50.0)
-                notes = st.text_input("ملاحظات على الأداء أو الخصومات")
-                
-                if st.form_submit_button("تسجيل اليومية والسلفة"):
+                adv = c4.number_input("سلفة مسحوبة (ج.م)", min_value=0.0, step=50.0)
+                notes = st.text_input("ملاحظات")
+                if st.form_submit_button("تسجيل اليومية"):
                     conn.cursor().execute("INSERT INTO labor_log (emp_name, date, status, advance, notes) VALUES (?, ?, ?, ?, ?)",
                                           (emp, str(l_date), stat, adv, notes))
                     conn.commit()
-                    st.success("تم الحفظ")
+                    st.success("تم الحفظ بنجاح")
                     st.rerun()
-            
-            st.subheader("سجل حركة العمالة الأخير")
+
+            st.subheader("سجل الحركة الأخير للعمالة")
             df_l = pd.read_sql("SELECT date as التاريخ, emp_name as العامل, status as الحالة, advance as 'السلفة (ج.م)', notes as ملاحظات FROM labor_log ORDER BY id DESC LIMIT 15", conn)
             st.dataframe(df_l, use_container_width=True)
         else:
-            st.info("قم بتسجيل بيانات العمال أولاً في التبويب المجاور.")
+            st.info("قم بإضافة عمال أولاً من التبويب المجاور.")
 
-# ----------------- 5. التوقعات ومحاكاة الإنتاج -----------------
-elif menu == "🔮 التوقعات ومحاكاة الإنتاج":
-    st.header("🔮 المحاكاة والتوقعات المستقبلية لدورات الأسماك")
-    st.caption("التنبؤ بمواعيد الحصاد، كمية العلف المطلوبة، والعوائد المتوقعة بناءً على مؤشرات النمو العلمي (ADG)")
-
+# 5. التوقعات والمحاكاة
+elif st.session_state.page == "التوقعات والمحاكاة":
+    st.header("🔮 التوقعات والمحاكاة المستقبلية لنمو الأسماك")
     ponds = [r[0] for r in conn.cursor().execute("SELECT name FROM ponds WHERE status='نشط'").fetchall()]
     if ponds:
-        pond_sel = st.selectbox("اختر الحوض للمحاكاة والتوقع:", ponds)
-        p_data = conn.cursor().execute("SELECT stock_count, initial_weight, stock_date, initial_cost FROM ponds WHERE name=?", (pond_sel,)).fetchone()
-        
-        count, init_w, s_date_str, seed_cost = p_data
+        pond_sel = st.selectbox("اختر الحوض للتحليل والتوقع:", ponds)
+        p_data = conn.cursor().execute("SELECT stock_count, initial_weight, stock_date FROM ponds WHERE name=?", (pond_sel,)).fetchone()
+        count, init_w, s_date_str = p_data
         s_date = date.fromisoformat(s_date_str)
         days_passed = (date.today() - s_date).days
         
         c1, c2, c3 = st.columns(3)
-        target_w = c1.number_input("الوزن النهائي المستهدف للسمكة (جرام)", value=350.0, step=25.0)
-        expected_adg = c2.number_input("معدل النمو اليومي المتوقع ADG (جرام/يوم)", value=2.2, step=0.1)
-        expected_fcr = c3.number_input("معدل التحويل الغذائي المستهدف (FCR)", value=1.4, step=0.05)
+        target_w = c1.number_input("الوزن المستهدف (جرام)", value=350.0, step=25.0)
+        expected_adg = c2.number_input("معدل النمو اليومي (ADG) جم/يوم", value=2.2, step=0.1)
+        expected_fcr = c3.number_input("معدل التحويل (FCR)", value=1.4, step=0.05)
         
-        # الحسابات العلمية
-        current_est_weight = init_w + (expected_adg * days_passed)
-        remaining_growth = max(0.0, target_w - current_est_weight)
-        days_to_harvest = int(remaining_growth / expected_adg) if expected_adg > 0 else 0
+        current_w = init_w + (expected_adg * days_passed)
+        days_to_harvest = int(max(0.0, target_w - current_w) / expected_adg) if expected_adg > 0 else 0
         est_harvest_date = date.today() + timedelta(days=days_to_harvest)
         
-        survival_rate = 0.90 # نسبة الحيوية الافتراضية
-        est_live_fish = count * survival_rate
-        est_total_harvest_kg = (est_live_fish * target_w) / 1000.0
-        
+        est_total_kg = ((count * 0.90) * target_w) / 1000.0
         feed_already_used = (pd.read_sql(f"SELECT SUM(qty_kg) as q FROM feed WHERE pond_name='{pond_sel}'", conn)['q'].iloc[0] or 0.0)
-        total_feed_needed_kg = (est_total_harvest_kg * expected_fcr)
-        remaining_feed_kg = max(0.0, total_feed_needed_kg - feed_already_used)
+        remaining_feed_kg = max(0.0, (est_total_kg * expected_fcr) - feed_already_used)
 
         st.markdown("---")
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("عمر الدورة الحالي", f"{days_passed} يوم")
-        m2.metric("متوسط الوزن التقديري الآن", f"{current_est_weight:.1f} جرام")
+        m2.metric("متوسط الوزن التقديري الآن", f"{current_w:.1f} جرام")
         m3.metric("الأيام المتبقية للحصاد", f"{days_to_harvest} يوم")
-        m4.metric("تاريخ الحصاد المتوقع", f"{est_harvest_date}")
+        m4.metric("تاريخ الحصاد التقديري", f"{est_harvest_date}")
 
-        m5, m6, m7 = st.columns(3)
-        m5.metric("الإنتاج المتوقع للحوض", f"{est_total_harvest_kg:,.0f} كجم")
-        m6.metric("العلف الإضافي المطلوب", f"{remaining_feed_kg:,.0f} كجم")
-        est_rev = est_total_harvest_kg * 85.0 # افتراض 85 جنيه للكيلو
-        m7.metric("الإيراد التقديري المتوقع (بمتوسط 85 ج/ك)", f"{est_rev:,.0f} ج.م")
+        m5, m6 = st.columns(2)
+        m5.metric("الإنتاج المتوقع للحوض", f"{est_total_kg:,.0f} كجم")
+        m6.metric("العلف الإضافي المطلوب حتى النهاية", f"{remaining_feed_kg:,.0f} كجم")
     else:
         st.info("لا توجد أحواض نشطة حالياً.")
 
-# ----------------- 6. البحث العلمي ومختبر المياه -----------------
-elif menu == "🧪 البحث العلمي ومختبر المياه":
+# 6. مختبر المياه
+elif st.session_state.page == "مختبر المياه":
     st.header("🧪 مراقبة خواص المياه والبحث العلمي")
     ponds = [r[0] for r in conn.cursor().execute("SELECT name FROM ponds WHERE status='نشط'").fetchall()]
-    
     with st.form("water_form", clear_on_submit=True):
         c1, c2 = st.columns(2)
         p_name = c1.selectbox("الحوض", ponds if ponds else ["عام"])
         w_date = c2.date_input("تاريخ القياس", date.today())
-        
         c3, c4, c5, c6 = st.columns(4)
-        oxy = c3.number_input("الأكسجين المذاب (DO) مجم/لتر", value=5.5, step=0.1)
+        oxy = c3.number_input("الأكسجين المذاب (DO)", value=5.5, step=0.1)
         temp = c4.number_input("درجة الحرارة مئوية (°C)", value=27.0, step=0.5)
         ph = c5.number_input("درجة الحموضة (pH)", value=7.8, step=0.1)
-        nh3 = c6.number_input("الأمونيا الكلية (NH3) مجم/لتر", value=0.05, step=0.01)
-        notes = st.text_input("ملاحظات بيولوجية (لون المياه، الطحالب، الرائحة)")
-        
-        if st.form_submit_button("حفظ القراءة المعملية"):
+        nh3 = c6.number_input("الأمونيا (NH3)", value=0.05, step=0.01)
+        notes = st.text_input("ملاحظات بيولوجية (اللون، الرائحة)")
+        if st.form_submit_button("حفظ القراءة"):
             conn.cursor().execute("INSERT INTO water_quality (pond_name, date, temp, dissolved_oxygen, ph, ammonia, notes) VALUES (?, ?, ?, ?, ?, ?, ?)",
                                   (p_name, str(w_date), temp, oxy, ph, nh3, notes))
             conn.commit()
-            st.success("تم تسجيل بيانات المياه في السجل العلمي للمزرعة")
+            st.success("تم تسجيل قراءة المياه بنجاح")
             st.rerun()
 
-    # تنبيهات علمية فورية
     if oxy < 4.0:
-        st.error("⚠️ تحذير علمي: الأكسجين المذاب أقل من 4 مجم/لتر! يجب تشغيل البدالات فوراً وتقليل التغذية.")
+        st.error("⚠️ تحذير: الأكسجين منخفض (أقل من 4 مجم/لتر)؛ شغل البدالات فوراً!")
     if nh3 > 0.5:
-        st.warning("⚠️ تحذير: نسبة الأمونيا مرتفعة! ينصح بتجديد مياه الحوض جزئياً فوراً.")
+        st.warning("⚠️ تنبيه: الأمونيا مرتفعة؛ قم بتجديد مياه الحوض جزئياً.")
 
-    st.subheader("سجل قراءات جودة المياه")
-    df_w = pd.read_sql("SELECT date as التاريخ, pond_name as الحوض, temp as 'الحرارة', dissolved_oxygen as 'الأكسجين DO', ph as 'الحموضة pH', ammonia as 'الأمونيا NH3', notes as ملاحظات FROM water_quality ORDER BY id DESC LIMIT 10", conn)
+    st.subheader("سجل قراءات المياه")
+    df_w = pd.read_sql("SELECT date as التاريخ, pond_name as الحوض, temp as 'الحرارة', dissolved_oxygen as 'الأكسجين DO', ph as 'الحموضة pH', ammonia as 'الأمونيا NH3' FROM water_quality ORDER BY id DESC LIMIT 10", conn)
     st.dataframe(df_w, use_container_width=True)
 
-# ----------------- 7. قائمة المراجعة والتدقيق اليومي -----------------
-elif menu == "✅ قائمة المراجعة والتدقيق اليومي":
+# 7. قائمة المراجعة
+elif st.session_state.page == "قائمة المراجعة":
     st.header("✅ قائمة الفحص والرقابة الميدانية اليومية")
-    st.caption("بروتوكول ضبط الجودة ومراجعة تشغيل المزرعة اليومي")
-    
     ponds = [r[0] for r in conn.cursor().execute("SELECT name FROM ponds WHERE status='نشط'").fetchall()]
     with st.form("audit_form", clear_on_submit=True):
         c1, c2, c3 = st.columns(3)
-        a_date = c1.date_input("تاريخ التدقيق", date.today())
-        p_name = c2.selectbox("الحوض المفحوص", ponds if ponds else ["عام"])
-        inspector = c3.text_input("اسم المراقب / الفاحص")
-        
-        st.markdown("##### عناصر التفتيش الميداني:")
+        a_date = c1.date_input("التاريخ", date.today())
+        p_name = c2.selectbox("الحوض", ponds if ponds else ["عام"])
+        inspector = c3.text_input("اسم الفاحص / المشرف")
         c4, c5, c6 = st.columns(3)
-        pumps = c4.selectbox("حالة البدالات والطلمبات والمولدات", ["ممتازة وشغالة", "تحتاج صيانة دورية", "معطلة / طوارئ"])
-        nets = c5.selectbox("حالة الجسور والشباك والمصافي", ["سليمة 100%", "تحتاج تدعيم", "يوجد هدر أو تسريب"])
-        feed_resp = c6.selectbox("سلوك الأسماك وإقبالها على العلف", ["شراهة وإقبال ممتاز", "إقبال متوسط", "عزوف عن العلف (خطر)"])
-        
+        pumps = c4.selectbox("البدالات والطلمبات", ["ممتازة وشغالة", "تحتاج صيانة", "معطلة"])
+        nets = c5.selectbox("الجسور والشباك", ["سليمة 100%", "تحتاج تدعيم", "يوجد تسريب"])
+        feed_resp = c6.selectbox("إقبال الأسماك على العلف", ["شراهة وإقبال ممتاز", "متوسط", "عزوف عن العلف"])
         c7, c8 = st.columns(2)
-        morts = c7.number_input("عدد الأسماك النافقة المجمعة اليوم", min_value=0, step=1)
-        a_notes = c8.text_input("ملاحظات أمنية وتشغيلية خاصة")
-        
-        if st.form_submit_button("اعتماد تقرير التدقيق اليومي"):
+        morts = c7.number_input("عدد النافق المجمع اليوم", min_value=0, step=1)
+        a_notes = c8.text_input("ملاحظات إضافية")
+        if st.form_submit_button("اعتماد التدقيق اليومي"):
             conn.cursor().execute("INSERT INTO audit_log (date, pond_name, pumps_status, nets_status, feeding_response, mortalities, inspector, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                                   (str(a_date), p_name, pumps, nets, feed_resp, morts, inspector, a_notes))
             conn.commit()
-            st.success("تم اعتماد تقرير المراجعة وأرشفته")
+            st.success("تم اعتماد تقرير التدقيق بنجاح")
             st.rerun()
 
     df_a = pd.read_sql("SELECT date as التاريخ, pond_name as الحوض, pumps_status as الطلمبات, feeding_response as 'إقبال العلف', mortalities as النافق, inspector as الفاحص FROM audit_log ORDER BY id DESC LIMIT 10", conn)
     st.dataframe(df_a, use_container_width=True)
 
-# ----------------- 8. الأعلاف والتشغيل اليومي -----------------
-elif menu == "🥣 الأعلاف والتشغيل اليومي":
+# 8. الأعلاف والتشغيل
+elif st.session_state.page == "الأعلاف والتشغيل":
     st.header("🥣 حركة العلف والمصروفات اليومية")
-    tab_f, tab_e = st.tabs(["تسجيل التغذية", "المصروفات النثرية والتشغيلية"])
-    
+    tab_f, tab_e = st.tabs(["تسجيل التغذية", "المصروفات النثرية"])
     with tab_f:
         ponds = [r[0] for r in conn.cursor().execute("SELECT name FROM ponds WHERE status='نشط'").fetchall()]
         if ponds:
             with st.form("feed_entry", clear_on_submit=True):
                 c1, c2 = st.columns(2)
                 f_date = c1.date_input("التاريخ", date.today())
-                p_sel = c2.selectbox("رقم الحوض", ponds)
+                p_sel = c2.selectbox("الحوض", ponds)
                 c3, c4, c5 = st.columns(3)
-                f_t = c3.selectbox("النوع", ["طافي 30%", "طافي 25%", "غطاس 32%", "بادئ 35%", "أخرى"])
+                f_t = c3.selectbox("نوع ونسبة البروتين", ["طافي 30%", "طافي 25%", "غطاس 32%", "بادئ 35%", "أخرى"])
                 qty = c4.number_input("الكمية (كجم)", min_value=0.0, step=25.0)
                 price = c5.number_input("سعر الكيلو (ج.م)", min_value=0.0, step=0.5)
                 if st.form_submit_button("حفظ حركة العلف") and qty > 0:
@@ -485,11 +477,10 @@ elif menu == "🥣 الأعلاف والتشغيل اليومي":
                     conn.commit()
                     st.success("تم تسجيل العلف")
                     st.rerun()
-
     with tab_e:
         with st.form("exp_entry", clear_on_submit=True):
             c1, c2 = st.columns(2)
-            e_date = c1.date_input("تاريخ المصروف", date.today())
+            e_date = c1.date_input("التاريخ", date.today())
             cat = c2.selectbox("البند", ["سولار وكهرباء", "أدوية ومخصبات", "صيانة ومعدات", "إيجار", "نثريات"])
             c3, c4 = st.columns(2)
             amt = c3.number_input("المبلغ (ج.م)", min_value=0.0, step=50.0)
@@ -498,12 +489,12 @@ elif menu == "🥣 الأعلاف والتشغيل اليومي":
                 conn.cursor().execute("INSERT INTO expenses (date, category, amount, notes) VALUES (?, ?, ?, ?)",
                                       (str(e_date), cat, amt, notes))
                 conn.commit()
-                st.success("تم ترحيل المصروف")
+                st.success("تم تسجيل المصروف")
                 st.rerun()
 
-# ----------------- 9. مبيعات الحصاد -----------------
-elif menu == "💰 مبيعات الحصاد":
-    st.header("💰 مبيعات الحصاد والإيرادات")
+# 9. مبيعات الحصاد
+elif st.session_state.page == "مبيعات الحصاد":
+    st.header("💰 مبيعات الحصاد وإيرادات الأسماك")
     ponds = [r[0] for r in conn.cursor().execute("SELECT name FROM ponds").fetchall()]
     with st.form("sale_entry", clear_on_submit=True):
         c1, c2 = st.columns(2)
@@ -517,15 +508,15 @@ elif menu == "💰 مبيعات الحصاد":
             conn.cursor().execute("INSERT INTO sales (pond_name, date, qty_kg, price_per_kg, total_price, client) VALUES (?, ?, ?, ?, ?, ?)",
                                   (p_name, str(s_date), qty, price, (qty * price), client))
             conn.commit()
-            st.success("تم تسجيل الفاتورة")
+            st.success("تم حفظ فاتورة البيع")
             st.rerun()
 
-# ----------------- 10. الأصول الثابتة ورأس المال -----------------
-elif menu == "🚜 الأصول الثابتة ورأس المال":
-    st.header("🚜 تسجيل الأصول الثابتة ورأس المال")
+# 10. الأصول ورأس المال
+elif st.session_state.page == "الأصول ورأس المال":
+    st.header("🚜 تسجيل الأصول الثابتة ورأس المال المبدئي")
     with st.form("asset_entry", clear_on_submit=True):
         c1, c2 = st.columns(2)
-        a_name = c1.text_input("اسم الأصل (مولد، بدالة، طلمبة، رأس مال نقدي)")
+        a_name = c1.text_input("اسم الأصل (مولد، طلمبة، بدالة، رأس مال كاش)")
         cat = c2.selectbox("التصنيف", ["معدات وآلات وطلمبات", "مباني وأحواض خرسانية", "شبكات وسيارات نقل", "رأس مال نقدي مبدئي"])
         c3, c4 = st.columns(2)
         val = c3.number_input("القيمة (ج.م)", min_value=0.0, step=1000.0)
@@ -537,8 +528,8 @@ elif menu == "🚜 الأصول الثابتة ورأس المال":
             st.success("تم إدراج الأصل بالدفاتر")
             st.rerun()
 
-# ----------------- 11. إدارة الأحواض -----------------
-elif menu == "🏞️ إدارة الأحواض":
+# 11. إدارة الأحواض
+elif st.session_state.page == "إدارة الأحواض":
     st.header("🏞️ تعريف الأحواض وتسكين الزريعة")
     with st.form("pond_entry", clear_on_submit=True):
         c1, c2 = st.columns(2)
@@ -547,7 +538,7 @@ elif menu == "🏞️ إدارة الأحواض":
         c3, c4, c5 = st.columns(3)
         count = c3.number_input("عدد الزريعة", min_value=0, step=1000)
         cost = c4.number_input("تكلفة الشراء (ج.م)", min_value=0.0, step=500.0)
-        init_w = c5.number_input("متوسط وزن الزريعة عند الإنزال (جرام)", value=1.0, step=0.5)
+        init_w = c5.number_input("متوسط الوزن الابتدائي (جرام)", value=1.0, step=0.5)
         s_date = st.date_input("تاريخ التسكين", date.today())
         if st.form_submit_button("تسكين الحوض") and name:
             try:
@@ -557,7 +548,7 @@ elif menu == "🏞️ إدارة الأحواض":
                 st.success("تم تسكين الحوض بنجاح")
                 st.rerun()
             except:
-                st.error("اسم الحوض موجود مسبقاً")
+                st.error("اسم الحوض مسجل مسبقاً")
 
     df_p = pd.read_sql("SELECT name as الحوض, fish_type as النوع, stock_count as 'عدد الزريعة', initial_weight as 'الوزن المبدئي (جم)', stock_date as التسكين FROM ponds", conn)
     st.dataframe(df_p, use_container_width=True)
