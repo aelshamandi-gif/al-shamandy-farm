@@ -70,7 +70,7 @@ def check_password():
         st.markdown("<h2 style='text-align: center; color: #0284c7;'>🐟 شركة ومزرعة أسماك عبد الله الشمندي</h2>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #64748b;'>منظومة الإدارة الذكية والدورة المحاسبية الشاملة</p>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns([1, 2, 1])
-        with col_login := c2:
+        with c2:
             st.info("🔒 يرجى إدخال رمز المرور السري للدخول")
             pwd = st.text_input("رمز الدخول (PIN):", type="password")
             if st.button("تسجيل الدخول للنظام", use_container_width=True):
